@@ -1337,7 +1337,7 @@
     // === First attempt ===
     if (userAnswer === currentAnswer) {
       // Correct
-      hp += 1;
+      hp += gameRound >= firstMonsterRound ? 5 : 1;
       correctCount++;
       correctStreak++;
       updateStreakBar();
@@ -1350,7 +1350,12 @@
       triggerPunch(fighterLeft, fighterRight);
 
       // 50 in a row — archery (Round 2 only)!
-      if (correctStreak === 50 && gameRound === 2 && !archeryActive) {
+      if (gameRound >= firstMonsterRound) {
+        if (correctStreak === 5) {
+          feedbackEl.textContent = enemyName + ' staggers!';
+          fighterRight.animate([{ transform: 'rotate(0)' }, { transform: 'rotate(14deg)' }, { transform: 'rotate(0)' }], 450);
+        }
+      } else if (correctStreak === 50 && gameRound === 2 && !archeryActive) {
         setTimeout(() => triggerArchery(), 300);
       }
       // 40 in a row — airstrike (R1), coconut (R2), arm wrestle (R3), sun launch (R4)!
@@ -1505,6 +1510,10 @@
   }
 
   function triggerVillainCutscene() {
+    if (gameRound >= 4) {
+      showMonsterVictory();
+      return;
+    }
     // Update button label based on current round
     if (gameRound === 1) {
       playAgainBtn.textContent = 'Play Round 2';
@@ -4083,7 +4092,78 @@
     startGame();
   }
 
+  const monsterScenarios = [
+    {
+      name: "Lantern Moth", arena: "Lantern Grove",
+      mission: "Guide the lost fireflies home.", ending: "A hundred tiny lights find their way back into the trees.",
+      sky: '#d9efcc', ground: '#8ebaa2', accent: '#ffd761', eyeY: 67,
+      shape: `<path fill="#507763" d="M58 74Q10 5 5 46Q0 94 38 99Q5 113 21 139Q47 146 60 100Q77 148 101 136Q119 113 85 97Q126 83 114 33Q93 19 60 73Z"/><path fill="#ffcf67" d="M17 51Q38 53 49 82Q25 83 17 51ZM102 48Q80 51 71 82Q99 77 102 48Z"/><ellipse cx="60" cy="94" rx="11" ry="33" fill="#b18c45"/><circle cx="60" cy="69" r="17" fill="#efc773"/><path d="M52 56Q47 34 37 37M68 55Q77 29 87 34" fill="none"/><path fill="#fff9a6" d="M52 99H68L64 116H56Z"/>`
+    },
+    {
+      name: "Glacier Crab", arena: "Frozen Ferry",
+      mission: "Break the ice around the ferry bell.", ending: "The bell rings across the lake. The ferry is moving again!",
+      sky: '#dcf5fc', ground: '#82bcd2', accent: '#52bad8', eyeY: 89,
+      shape: `<path fill="none" stroke-width="7" d="M33 100L16 103L5 119M32 111L21 120L19 132M88 100L105 104L116 120M84 113L98 121L102 133"/><path fill="#65bcd2" d="M37 89L21 80Q0 81 4 50L16 64L22 40Q39 52 30 69L46 78ZM80 84L94 68Q81 52 97 39L102 60L116 47Q123 77 105 82L91 96Z"/><path fill="#79d6e9" d="M24 94L37 74L57 69L85 73L99 92L88 114L55 121L29 111Z"/><path fill="#ebfbff" d="M36 76L42 51L54 71L67 42L77 72L86 59L86 76Z"/>`
+    },
+    {
+      name: "Cinder Drake", arena: "Ember Bridge",
+      mission: "Cool the stones so the bridge can open.", ending: "The last stone cools to gray. The bridge unfolds across the gorge.",
+      sky: '#ffe7bb', ground: '#dc9a77', accent: '#ec743c', eyeY: 62,
+      shape: `<path fill="#954047" d="M52 76Q39 47 10 42L18 89L28 77L35 104ZM67 75Q85 39 110 35L102 88L91 74L81 103Z"/><path fill="#d27346" d="M46 88Q35 114 62 124Q88 133 99 104Q115 140 75 143Q29 147 28 119Z"/><path fill="#e99851" d="M41 87L35 65L43 43L39 24L55 39L74 37L90 23L85 52L94 70L81 87L60 94Z"/><path fill="#f9d572" d="M47 99L68 98L63 122L47 115Z"/>`
+    },
+    {
+      name: "Clockwork Owl", arena: "Midnight Belfry",
+      mission: "Free the clock hands before dawn.", ending: "The owl folds its brass wings. Both clock hands point to morning.",
+      sky: '#e9def6', ground: '#a59bbd', accent: '#c88d38', eyeY: 67,
+      shape: `<path fill="#966643" d="M32 83Q8 90 13 130L43 114ZM83 81Q112 92 108 130L76 113Z"/><ellipse cx="60" cy="100" rx="30" ry="36" fill="#d4a251"/><path fill="#cc9953" d="M25 42L45 50Q60 41 77 50L96 39L89 80Q61 109 31 81Z"/><g fill="#fff0b8"><circle cx="45" cy="67" r="14"/><circle cx="75" cy="67" r="14"/></g><path fill="#805733" d="M54 79L66 79L60 89Z"/><circle cx="60" cy="111" r="13" fill="#ffeac2"/><path fill="none" d="M60 101V111L69 116M39 138L48 131L53 138M68 138L74 131L81 138"/>`
+    },
+    {
+      name: "Tide Kraken", arena: "Moonpool Lighthouse",
+      mission: "Untangle the lighthouse lens before the tide turns.", ending: "The beacon sweeps the bay again. Every boat makes it home.",
+      sky: '#cee9ee', ground: '#89abc8', accent: '#a37bd0', eyeY: 80,
+      shape: `<g fill="none" stroke="#564474" stroke-width="13"><path d="M35 96Q18 139 9 105M45 102Q34 154 22 138M57 101Q53 147 43 143M70 102Q78 151 87 135M82 93Q103 139 110 101"/></g><path fill="#9476bb" d="M24 88Q24 53 44 38Q59 27 71 29Q97 50 96 86Q85 110 59 107Q32 109 24 88Z"/><g fill="#e8c4ee" stroke="none"><circle cx="54" cy="47" r="5"/><circle cx="68" cy="43" r="3"/><circle cx="40" cy="59" r="3"/></g>`
+    }
+  ];
+  const firstMonsterRound = 5;
+  function startMonster(index) {
+    const monster = monsterScenarios[index];
+    gameRound = firstMonsterRound + index;
+    enemyName = monster.name;
+    enemyNameLabel.textContent = enemyName;
+    fighterRight.querySelector('.fighter-body').innerHTML = `<svg class="karate-svg" viewBox="0 0 120 160" width="120" height="160" aria-hidden="true">
+      <ellipse cx="60" cy="147" rx="40" ry="5" fill="#30293d" opacity=".14"/>
+      <g stroke="#3a3541" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round">${monster.shape}</g>
+      <g fill="#242331"><circle cx="53" cy="${monster.eyeY}" r="3"/><circle cx="67" cy="${monster.eyeY}" r="3"/></g>
+    </svg>`;
+    gameScreen.style.background = `radial-gradient(circle at 83% 20%, ${monster.accent} 0 4%, transparent 4.3%), linear-gradient(165deg, ${monster.sky} 35%, ${monster.ground} 100%)`;
+    const banner = document.getElementById('monster-mission');
+    if (banner) {
+      banner.hidden = false;
+      banner.textContent = monster.arena + ' · ' + monster.mission;
+    }
+    streakBar.style.display = 'none';
+    startGame();
+  }
+
+  function showMonsterVictory() {
+    const index = gameRound - firstMonsterRound;
+    const next = monsterScenarios[index + 1];
+    villainCutscene.style.display = 'none';
+    winContent.style.display = '';
+    winContent.querySelector('.end-sub').textContent = index < 0
+      ? 'Beyond the dojo, the fireflies have lost their way.'
+      : monsterScenarios[index].ending;
+    playAgainBtn.textContent = next ? 'Fight ' + next.name : 'Return to Dojo';
+  }
+
   // === Event listeners ===
+  const monsterSelect = document.getElementById("monster-select");
+  if (monsterSelect) {
+    monsterScenarios.forEach((monster, index) => monsterSelect.add(new Option(monster.name + " — " + monster.arena, index)));
+    monsterSelect.addEventListener("change", () => {
+      if (monsterSelect.value !== "") startMonster(Number(monsterSelect.value));
+    });
+  }
   startBtn.addEventListener('click', showNameScreen);
   nameBtn.addEventListener('click', confirmEnemyName);
   enemyNameInput.addEventListener('keydown', (e) => {
@@ -4097,8 +4177,10 @@
       startRound3();
     } else if (gameRound === 3) {
       startRound4();
+    } else if (gameRound < firstMonsterRound + monsterScenarios.length - 1) {
+      startMonster(gameRound - firstMonsterRound + 1);
     } else {
-      startGame();
+      window.location.reload();
     }
   });
 
