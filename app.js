@@ -4420,6 +4420,73 @@
   return '<svg viewBox="0 0 600 300" aria-hidden="true">'+desert+scene+'</svg>';
   }
 
+  const streakBattles = {
+    [scorpionRound]: { films: scorpionFilms, draw: scorpionFilmArt },
+    [krakenRound]: { films: krakenFilms, draw: krakenFilmArt },
+    [snakeRound]: { films: snakeFilms, draw: snakeFilmArt },
+    [bearRound]: { films: bearFilms, draw: bearFilmArt }
+  };
+
+  async function playStreakFilm(streak, victory = false) {
+    const timeScale = 2;
+    const isSnake = gameRound === snakeRound;
+    const battle = streakBattles[gameRound];
+    const [title, caption] = battle.films[streak];
+    const art = battle.draw(streak);
+    const dialog = document.createElement('dialog');
+    dialog.className = 'kraken-film';
+    dialog.setAttribute('aria-label', title);
+    dialog.innerHTML = '<div class="film-art">' + art + '</div><h2></h2><p aria-live="polite"></p>';
+    // Both films use SVG timeline offsets and durations expressed in seconds.
+    for (const cue of dialog.querySelectorAll('animateTransform, animateMotion, animate, set')) {
+      for (const attribute of ['begin', 'dur']) {
+        if (cue.hasAttribute(attribute)) {
+          const seconds = parseFloat(cue.getAttribute(attribute));
+          cue.setAttribute(attribute, (seconds * timeScale) + 's');
+        }
+      }
+    }
+    dialog.querySelector('h2').textContent = title;
+    const line = dialog.querySelector('p');
+    document.body.append(dialog);
+    dialog.addEventListener('cancel', event => event.preventDefault());
+    dialog.showModal();
+    const wait = ms => new Promise(resolve => setTimeout(resolve, ms * timeScale));
+    if (streak === 50 && gameRound === scorpionRound) {
+      line.textContent = victory ? 'Scorpion: “I surrender. Somebody slide me my hat.”' : 'Scorpion: “Time out. Somebody slide me my hat.”';
+      await wait(2600);
+      line.textContent = 'Yonah: “Since when do you wear a hat?”';
+      await wait(2600);
+      line.textContent = 'Scorpion: “Since you made me the same shape as a pancake. The vultures are looking for syrup.”';
+      await wait(3200);
+    } else if (streak === 50 && gameRound === bearRound) {
+      line.textContent = victory ? 'Bear: “I surrender. But I demand to speak to the chef.”' : 'Bear: “Fifty in a row? I want a recount. And a fork.”';
+      await wait(2600);
+      line.textContent = victory ? 'Yonah: “Was something wrong with the pie?”' : 'Yonah: “You ate the evidence, Bear.”';
+      await wait(2600);
+      line.textContent = victory ? 'Bear: “Yes. I ordered it to go. It came AT me.”' : 'Bear: “Then I’ll need a second opinion. Same flavor.”';
+      await wait(3200);
+    } else if (streak === 50) {
+      line.textContent = isSnake
+        ? (victory ? 'Snake: “I surrender. But the bowling alley owes me a shoe rental.”' : 'Snake: “Fifty in a row? I thought I had you rattled!”')
+        : victory ? 'Kraken: “One hundred points! I yield, Yonah.”' : 'Kraken: “Fifty answers in a row? I lost count at eight!”';
+      await wait(2600);
+      line.textContent = isSnake
+        ? (victory ? 'Yonah: “Snake, you don’t have feet.”' : 'Yonah: “Fifty in a row. Want a break from being the bowling ball?”')
+        : victory ? 'Yonah: “Good fight, Captain Eight-Arms. See you at the dojo!”' : 'Yonah: “Keep those tentacles steady. Our match isn’t over yet!”';
+      await wait(3200);
+      if (isSnake && victory) {
+        line.textContent = 'Snake: “EXACTLY. I paid for two!”';
+        await wait(2600);
+      }
+    } else {
+      line.textContent = caption;
+      await wait(3800);
+    }
+    dialog.close();
+    dialog.remove();
+  }
+
   function startSenseiFight() {
     gameRound = 1;
     enemyName = 'Sensei Bot';
