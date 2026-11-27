@@ -7,29 +7,6 @@
   <link href="https://api.fontshare.com/v2/css?f[]=chillax@400,500,600,700&f[]=general-sans@400,500,600,700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./base.css">
   <link rel="stylesheet" href="./style.css">
-  <style>
-    #monster-select {
-      max-width: min(88vw, 26rem);
-      padding: .65rem 1rem;
-      border: 1px solid #bfa58a;
-      border-radius: .7rem;
-      color: var(--color-text);
-      background: #fff8ed;
-      font: inherit;
-      cursor: pointer;
-    }
-    #monster-mission {
-      max-width: 38rem;
-      margin: 0 auto .5rem;
-      text-align: center;
-      font-weight: 600;
-      line-height: 1.25;
-      color: #30293d;
-    }
-    @media (max-height: 620px) {
-      #game-screen:has(#monster-mission:not([hidden])) { padding-top: .5rem; overflow-y: auto; }
-    }
-  </style>
 </head>
 <body>
   <!-- START SCREEN -->
@@ -45,9 +22,6 @@
       <h1 class="game-title">Karate Math</h1>
       <p class="game-subtitle">Yonah's Multiplication Dojo</p>
       <button id="start-btn" class="btn-primary">Start Training</button>
-      <select id="monster-select" aria-label="Choose a monster fight">
-        <option value="">Choose a monster fight…</option>
-      </select>
     </div>
   </div>
 
@@ -63,7 +37,6 @@
 
   <!-- GAME SCREEN -->
   <div id="game-screen" class="screen">
-    <p id="monster-mission" hidden></p>
     <!-- HP Bar -->
     <div class="hp-container">
       <div class="hp-label">Yonah's HP</div>
@@ -4099,6 +4072,6 @@
 
   </div>
 <!-- END SUN LAUNCH OVERLAY -->
-  <script src="./app.js?v=3f07e572a8b1"></script>
+  <script src="./app.js?v=72f87c6033c3"></script>
 </body>
 </html>
