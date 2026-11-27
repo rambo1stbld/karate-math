@@ -83,7 +83,7 @@
     streakCountEl.textContent = correctStreak;
 
     // Progress fill — goes from 0% to 100% over 0→40
-    const pct = Math.min((correctStreak / 40) * 100, 100);
+    const pct = Math.min((correctStreak / milestones[milestones.length - 1]) * 100, 100);
     streakFill.style.width = pct + '%';
 
     // Fire glow when streak >= 3
@@ -1278,7 +1278,7 @@
   }
 
   // === Submit answer ===
-  function submitAnswer() {
+  async function submitAnswer() {
     if (isProcessing) return;
 
     const userAnswer = parseInt(answerInput.value, 10);
@@ -1347,6 +1347,24 @@
       trickHintEl.classList.remove('visible');
       playCorrectSFX();
       triggerPunch(fighterLeft, fighterRight);
+
+      if (gameRound === krakenRound) {
+        updateHP();
+        await new Promise(resolve => setTimeout(resolve, 700));
+        const won = hp >= 100;
+        if (krakenFilms[correctStreak]) {
+          await playKrakenFilm(correctStreak, won);
+        }
+        if (won) {
+          playWinSFX();
+          if (correctStreak !== 50) await playKrakenFilm(50, true);
+          window.location.reload();
+        } else {
+          generateQuestion();
+          isProcessing = false;
+        }
+        return;
+      }
 
       // 50 in a row — archery (Round 2 only)!
       if (correctStreak === 50 && gameRound === 2 && !archeryActive) {
@@ -4085,6 +4103,116 @@
   }
 
   // === Event listeners ===
+  // Kraken arena and streak films. All scene artwork is local to the game.
+  const krakenRound = 5;
+  const krakenSVG = `<svg class="karate-svg" viewBox="0 0 120 180" width="120" height="180" xmlns="http://www.w3.org/2000/svg">
+    <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <g stroke="#13394b" stroke-width="12">
+        <path d="M40 83 Q19 103 14 72 T5 70 M46 91 Q18 128 8 106 M52 97 Q26 155 16 132 M57 100 Q36 172 30 146 M64 99 Q64 160 51 158 M72 96 Q89 161 98 137 M80 90 Q105 131 112 111"/>
+      </g>
+      <path stroke="#37afa3" stroke-width="7" d="M40 83 Q19 103 14 72 T5 70 M46 91 Q18 128 8 106 M52 97 Q26 155 16 132 M57 100 Q36 172 30 146 M64 99 Q64 160 51 158 M72 96 Q89 161 98 137 M80 90 Q105 131 112 111"/>
+      <g class="outer-tentacle"><path stroke="#13394b" stroke-width="12" d="M81 83 Q105 104 109 68 Q114 41 116 58"/><path stroke="#37afa3" stroke-width="7" d="M81 83 Q105 104 109 68 Q114 41 116 58"/></g>
+    </g>
+    <path fill="#268e91" stroke="#13394b" stroke-width="3" d="M26 72 Q21 38 45 22 L69 8 Q93 27 93 60 Q99 87 79 100 Q48 115 29 91Z"/>
+    <path fill="#69c6b4" d="M33 57 Q32 34 64 19 Q49 30 44 54Z"/>
+    <g fill="#efbe78"><circle cx="77" cy="36" r="3"/><circle cx="82" cy="45" r="2"/><circle cx="72" cy="30" r="2"/></g>
+    <g stroke="#123948" stroke-width="2.5" fill="#ffda70"><path d="M34 62L53 67Q51 86 39 77Z"/><path d="M65 66L86 58Q85 79 71 77Z"/></g>
+    <g fill="#163545"><ellipse cx="46" cy="70" rx="2" ry="5"/><ellipse cx="76" cy="68" rx="2" ry="5"/><path d="M54 87Q61 80 68 86L60 96Z"/></g>
+  </svg>`;
+
+  const krakenFilms = {
+    5: ['The whaling ship', 'Yonah lands a harpoon from the bow. The Kraken dives!'],
+    10: ['Trouble below', 'The Kraken swims into a sea mine. BOOM!'],
+    20: ['Full steam ahead', 'With Yonah on deck, the cruise ship crashes into the Kraken.'],
+    30: ['Dinner at the sushi bar', 'The chef slides a plate of octopus nigiri over to Yonah.'],
+    40: ['Orca crossing', 'An orca bites off the tip of a tentacle. The Kraken slips away.'],
+    50: ['A truce at sea', '']
+  };
+
+  function startKrakenFight() {
+    gameRound = krakenRound;
+    enemyName = 'Kraken';
+    enemyNameLabel.textContent = enemyName;
+    fighterRight.querySelector('.fighter-body').innerHTML = krakenSVG;
+    const icons = ['⚓', '💥', '🚢', '🍣', '🐋', '💬'];
+    if (!milestones.includes(50)) {
+      milestones.push(50);
+      const last = document.getElementById('ms-40');
+      const extra = last.cloneNode(true);
+      extra.id = 'ms-50';
+      extra.dataset.target = '50';
+      extra.querySelector('.ms-num').textContent = '50';
+      last.after(extra);
+    }
+    milestones.forEach((n, i) => {
+      document.getElementById('ms-' + n).querySelector('.ms-icon').textContent = icons[i];
+    });
+    startGame();
+  }
+
+  function krakenFilmArt(streak) {
+    const hero = fighterLeft.querySelector('.karate-svg').outerHTML;
+    const place = (x, y, scale, art) => `<g transform="translate(${x} ${y}) scale(${scale})">${art}</g>`;
+    const glide = (from, to, begin, dur, art) => `<g transform="translate(${from})"><animateTransform attributeName="transform" type="translate" from="${from}" to="${to}" begin="${begin}s" dur="${dur}s" fill="freeze"/>${art}</g>`;
+    const vanish = (when, art) => `<g>${art}<set attributeName="opacity" to="0" begin="${when}s" fill="freeze"/></g>`;
+    const ocean = `<rect width="600" height="300" fill="#9bd7df"/><circle cx="488" cy="56" r="34" fill="#fff0c1"/>
+      <path fill="#8abac3" d="M0 126L85 92L145 123L210 104L275 136H0Z"/>
+      <path fill="#327e92" d="M0 137Q70 120 150 138T300 139T450 137T600 135V300H0Z"/>
+      <path fill="#246278" d="M0 204Q85 177 170 204T340 206T510 205T680 203V300H0Z"/>
+      <path d="M12 160q22 7 45 0m21 67q31 8 60 0m363-56q20 7 40 0m-169 55q26 6 52 0" fill="none" stroke="#a0dfdc" stroke-width="3"/>`;
+    const burst = `<g transform="translate(390 174)"><g opacity="0"><set attributeName="opacity" to="1" begin="1.8s" dur=".85s"/>
+      <animateTransform attributeName="transform" type="scale" from=".2" to="1.4" begin="1.8s" dur=".85s" fill="freeze"/>
+      <path fill="#ffad4d" stroke="#ffe7a6" stroke-width="6" d="M-60 -8L-24 -18L-39 -56L-6 -32L9 -68L20 -26L59 -40L42 -9L75 8L35 18L40 53L9 31L-12 58L-22 24L-60 30L-41 8Z"/></g></g>`;
+    const beast = place(365, 88, .9, krakenSVG);
+    let scene;
+    if (streak === 5) {
+      const ship = `<path d="M36 155H242L209 188H69Z" fill="#804c35" stroke="#382e36" stroke-width="4"/><path d="M101 149V41" stroke="#624330" stroke-width="6"/><path d="M96 48L45 124H96Z" fill="#fff3cf"/><path d="M108 51L162 118H108Z" fill="#f0cea1"/>` + place(155, 76, .45, hero);
+      const spear = '<path d="M0 0l55 0m-9 -5l10 5l-10 5" fill="none" stroke="#283e4a" stroke-width="4"/>';
+      scene = ocean + ship + glide('0 0','18 38',1.75,1,beast) + glide('196 125','356 145',.65,1.1,spear);
+    } else if (streak === 10) {
+      const mine = '<g transform="translate(390 174)" stroke="#263743" stroke-width="6"><path d="M0-32v12m0 40v12m-32-32h12m40 0h12m-55-23l9 9m28 28l9 9m0-46l-9 9m-28 28l-9 9"/><circle r="20" fill="#47576b"/><circle cx="-5" cy="-6" r="5" fill="#c5d5dc" stroke="none"/></g>';
+      scene = ocean + vanish(1.8,mine) + vanish(1.8,glide('0 0','215 0',0,1.8,place(128,105,.85,krakenSVG))) + burst;
+    } else if (streak === 20) {
+      const liner = '<path fill="#253952" d="M15 151H265L221 196H56Z"/><path fill="#faf3df" d="M42 150V131H63V113H91V96H197V114H217V132H238V150Z"/><path stroke="#4b8099" stroke-width="6" stroke-dasharray="10 5" d="M53 141H226M75 122H203"/><path fill="#d7694a" d="M102 96l-5-23h15l8 23Z"/>' + place(161,52,.35,hero);
+      scene = ocean + glide('0 0','62 25',1.8,.65,beast) + glide('-35 0','147 0',0,1.8,liner) + burst;
+    } else if (streak === 30) {
+      const plate = '<ellipse cx="0" cy="0" rx="52" ry="12" fill="#f5efdd" stroke="#385967" stroke-width="3"/><rect x="-21" y="-15" width="40" height="15" rx="7" fill="#fff"/><path d="M-24-12q12-22 31-8l17 8-6 6-12-6q-13-5-26 6Z" fill="#bd655a"/><g fill="#ffcdaf"><circle cx="-11" cy="-13" r="2"/><circle cx="-3" cy="-16" r="2"/><circle cx="6" cy="-15" r="2"/></g>';
+      scene = '<rect width="600" height="300" fill="#edceab"/><path fill="#893e39" d="M0 0H600V44H0Z"/><path stroke="#986849" stroke-width="5" d="M52 50v128m80-128v128m-80-92h80m-80 41h80"/><g fill="#ea795c"><ellipse cx="465" cy="64" rx="22" ry="31"/><ellipse cx="523" cy="64" rx="22" ry="31"/></g>' + place(123,83,.8,hero) + '<circle cx="406" cy="142" r="25" fill="#edba8c"/><path fill="white" d="M380 130v-20q-12-13 2-18q4-16 19-9q15-12 24 3q16-1 14 15l-8 11v18ZM365 208l9-42h50l20 42Z"/><path d="M394 142h3m13 0h3" stroke="#333" stroke-width="3"/><rect y="205" width="600" height="95" fill="#976246"/>' + glide('395 214','184 214',.4,1.8,plate);
+    } else if (streak === 40) {
+      const orca = '<path fill="#172d3c" d="M4 45Q43 40 66 32L81 3L90 29Q143 16 175 39Q186 49 163 57Q124 77 81 61L56 78L62 59Q34 62 15 55L0 66L6 50L0 34Z"/><path fill="#f8f5e6" d="M79 53Q111 60 166 48Q139 69 96 62Z"/><ellipse cx="144" cy="38" rx="10" ry="5" fill="white"/>';
+      const cropped = krakenSVG.replace('class="outer-tentacle"', 'class="outer-tentacle" style="display:none"');
+      scene = ocean + vanish(1.8,beast) + '<g opacity="0"><set attributeName="opacity" to="1" begin="1.8s" fill="freeze"/>' + place(365,88,.9,cropped) + '</g>' + glide('0 0','-70 35',1.8,1.2,glide('810 105','648 105',0,1.8,'<g transform="scale(-1 1)">'+orca+'</g>')) + glide('0 0','32 42',1.8,1.3,'<g opacity="0"><set attributeName="opacity" to="1" begin="1.8s" fill="freeze"/><path d="M461 153q7-26 12-11" stroke="#37afa3" stroke-width="8" fill="none"/></g>');
+    } else {
+      scene = ocean + place(103,67,.93,hero) + beast;
+    }
+    return '<svg viewBox="0 0 600 300" aria-hidden="true">' + scene + '</svg>';
+  }
+
+  async function playKrakenFilm(streak, victory = false) {
+    const [title, caption] = krakenFilms[streak];
+    const dialog = document.createElement('dialog');
+    dialog.className = 'kraken-film';
+    dialog.setAttribute('aria-label', title);
+    dialog.innerHTML = '<div class="film-art">' + krakenFilmArt(streak) + '</div><h2></h2><p aria-live="polite"></p>';
+    dialog.querySelector('h2').textContent = title;
+    const line = dialog.querySelector('p');
+    document.body.append(dialog);
+    dialog.addEventListener('cancel', event => event.preventDefault());
+    dialog.showModal();
+    const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
+    if (streak === 50) {
+      line.textContent = victory ? 'Kraken: “One hundred points! I yield, Yonah.”' : 'Kraken: “Fifty answers in a row? I lost count at eight!”';
+      await wait(2600);
+      line.textContent = victory ? 'Yonah: “Good fight, Captain Eight-Arms. See you at the dojo!”' : 'Yonah: “Keep those tentacles steady. Our match isn’t over yet!”';
+      await wait(3200);
+    } else {
+      line.textContent = caption;
+      await wait(3800);
+    }
+    dialog.close();
+    dialog.remove();
+  }
+
   function startSenseiFight() {
     gameRound = 1;
     enemyName = 'Sensei Bot';
@@ -4099,7 +4227,8 @@
       { name: 'Sensei Bot', artwork: originalEnemySVG, fight: startSenseiFight },
       { name: 'Ogre', artwork: ogreSVG, fight: startRound2 },
       { name: 'Devil', artwork: devilSVG, fight: startRound3 },
-      { name: 'Alien Overlord', artwork: alienSVG, fight: startRound4 }
+      { name: 'Alien Overlord', artwork: alienSVG, fight: startRound4 },
+      { name: 'Kraken', artwork: krakenSVG, fight: startKrakenFight }
     ];
     for (const opponent of opponents) {
       const button = document.createElement('button');
