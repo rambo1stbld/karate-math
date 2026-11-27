@@ -7,6 +7,26 @@
   <link href="https://api.fontshare.com/v2/css?f[]=chillax@400,500,600,700&f[]=general-sans@400,500,600,700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./base.css">
   <link rel="stylesheet" href="./style.css">
+  <style>
+    #start-screen { overflow-y: auto; justify-content: flex-start; }
+    #start-screen .start-content { margin: auto; padding: 1rem; }
+    #opponent-heading { margin: 0 0 .65rem; font: 600 1rem var(--font-body); }
+    #opponent-list { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: .6rem; }
+    .opponent-choice {
+      width: clamp(5.4rem, 12vw, 7rem); padding: .5rem .2rem .65rem;
+      display: grid; justify-items: center; align-content: start; gap: .4rem;
+      border: 1px solid #c9ab89; border-radius: .9rem; color: #302720;
+      background: #fff9ef; font: 600 .9rem var(--font-body); cursor: pointer;
+    }
+    .opponent-choice:hover, .opponent-choice:focus-visible { outline: 2px solid #b53830; outline-offset: 2px; }
+    .opponent-portrait { display: block; width: 100%; background: #f4e2ce; border-radius: .6rem; overflow: hidden; }
+    .opponent-portrait svg { display: block; width: 100%; height: auto; aspect-ratio: 120/103; }
+    @media (max-width: 440px) {
+      #opponent-list { grid-template-columns: repeat(2, 1fr); }
+      .opponent-choice { width: 7.25rem; }
+      .opponent-portrait { width: 4.75rem; }
+    }
+  </style>
 </head>
 <body>
   <!-- START SCREEN -->
@@ -21,6 +41,10 @@
       </div>
       <h1 class="game-title">Karate Math</h1>
       <p class="game-subtitle">Yonah's Multiplication Dojo</p>
+      <section aria-labelledby="opponent-heading">
+        <h2 id="opponent-heading">Choose your opponent</h2>
+        <div id="opponent-list"></div>
+      </section>
       <button id="start-btn" class="btn-primary">Start Training</button>
     </div>
   </div>
@@ -4072,6 +4096,6 @@
 
   </div>
 <!-- END SUN LAUNCH OVERLAY -->
-  <script src="./app.js?v=72f87c6033c3"></script>
+  <script src="./app.js?v=1ad9d183bbd6"></script>
 </body>
 </html>
