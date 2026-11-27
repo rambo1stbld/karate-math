@@ -12,7 +12,7 @@
     #start-screen .start-content { margin: auto; padding: 1rem; }
     #win-screen.active { position: fixed; inset: 0; z-index: 2147483647; }
     #opponent-heading { margin: 0 0 .65rem; font: 600 1rem var(--font-body); }
-    #opponent-list { display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); gap: .6rem; }
+    #opponent-list { display: grid; grid-template-columns: repeat(6,minmax(0,1fr)); gap: .6rem; }
     .opponent-choice {
       width: clamp(5.4rem, 12vw, 7rem); padding: .5rem .2rem .65rem;
       display: grid; justify-items: center; align-content: start; gap: .4rem;
@@ -27,6 +27,7 @@
     .kraken-film .film-art > svg { width: 100%; height: auto; display: block; }
     .kraken-film h2 { margin: .85rem .8rem .25rem; font: 700 1.5rem var(--font-display); }
     .kraken-film p { margin: .3rem 1rem; font: 500 1rem/1.45 var(--font-body); }
+    @media (min-width: 581px) and (max-width: 760px) { #opponent-list { grid-template-columns: repeat(3, 1fr); } }
     @media (max-width: 580px) {
       #opponent-list { grid-template-columns: repeat(2, 1fr); }
       .opponent-choice { width: 7.25rem; }
@@ -4102,6 +4103,6 @@
 
   </div>
 <!-- END SUN LAUNCH OVERLAY -->
-  <script src="./app.js?v=b189d3f35727"></script>
+  <script src="./app.js?v=da5ba26a3d92"></script>
 </body>
 </html>
