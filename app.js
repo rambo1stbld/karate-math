@@ -4355,7 +4355,69 @@
     return '<svg viewBox="0 0 600 300" aria-hidden="true">' + scene + '</svg>';
   }
 
+  const scorpionRound = 8;
+  const scorpionSVG = "<svg class=\"karate-svg\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 150 180\" width=\"120\" height=\"180\"><g stroke=\"#412335\" stroke-width=\"4\" stroke-linejoin=\"round\" stroke-linecap=\"round\"><g fill=\"none\" stroke-width=\"14\" stroke=\"#70394b\"><path d=\"M88 112C151 88 137 16 103 27Q85 33 90 54\"/></g><g fill=\"#e39748\"><ellipse cx=\"126\" cy=\"65\" rx=\"10\" ry=\"13\"/><ellipse cx=\"126\" cy=\"43\" rx=\"9\" ry=\"11\"/><ellipse cx=\"113\" cy=\"29\" rx=\"11\" ry=\"8\"/><path d=\"M99 29Q76 32 84 55L97 65L92 47Q105 48 99 29Z\"/></g><g fill=\"none\" stroke=\"#70394b\"><path d=\"M57 108L30 110L19 124M55 116L31 123L25 141M61 124L42 136L38 153M67 128L60 145L56 159M85 108L110 111L123 124M88 115L115 124L122 139M84 121L105 137L110 151M78 128L90 147L92 158\"/></g><ellipse cx=\"74\" cy=\"112\" rx=\"27\" ry=\"31\" fill=\"#b85546\"/><path d=\"M48 110Q72 120 99 108M50 122Q75 132 97 120\" fill=\"none\"/><path d=\"M55 101L28 95L21 80M89 100L109 88L109 75\" fill=\"none\" stroke-width=\"8\"/><g fill=\"#e2794e\"><path d=\"M29 92Q0 94 6 59L18 74L25 55Q44 74 29 92Z\"/><path d=\"M107 85Q84 71 98 48L105 65L119 50Q132 74 107 85Z\"/><ellipse cx=\"70\" cy=\"95\" rx=\"24\" ry=\"19\"/></g><g fill=\"#fff6d7\"><ellipse cx=\"60\" cy=\"90\" rx=\"8\" ry=\"10\"/><ellipse cx=\"77\" cy=\"89\" rx=\"8\" ry=\"10\"/></g><g fill=\"#412335\" stroke=\"none\"><circle cx=\"57\" cy=\"92\" r=\"3\"/><circle cx=\"74\" cy=\"91\" r=\"3\"/></g><path d=\"M61 104Q69 100 75 104\" fill=\"none\"/></g></svg>";
+  const scorpionFilms = {
+  "5": [
+    "Boop inspection",
+    "Yonah fits a squeaky red nose over the stinger. Scorpion attempts a menacing boop."
+  ],
+  "10": [
+    "The getaway",
+    "Yonah rolls out a skateboard. All eight feet climb aboard before Scorpion checks for brakes."
+  ],
+  "20": [
+    "Employee of the month",
+    "Yonah slides a time card under the stinger. Scorpion accidentally clocks in for the night shift."
+  ],
+  "30": [
+    "The claw machine",
+    "Yonah tries the arcade claw. First prize has two claws of its own and would like a refund."
+  ],
+  "40": [
+    "Make a wish",
+    "Yonah wheels out a birthday cake. Scorpion lands headfirst and gets promoted to cake topper."
+  ],
+  "50": [
+    "A pointed complaint",
+    ""
+  ]
+};
+  function startScorpionFight(){startStreakFight(scorpionRound,'Scorpion',scorpionSVG,['🔴','🛹','🕒','🕹️','🎂','💬']);}
+
+  function scorpionFilmArt(streak) {
+  const place = (x,y,k,art) => `<g transform="translate(${x} ${y}) scale(${k})">${art}</g>`;
+  const move = (path,begin,dur,art) => `<g>${art}<animateMotion path="${path}" begin="${begin}s" dur="${dur}s" fill="freeze"/></g>`;
+  const rotate = (values,begin,dur,art) => `<g>${art}<animateTransform attributeName="transform" type="rotate" values="${values}" begin="${begin}s" dur="${dur}s" fill="freeze"/></g>`;
+  const caption = (x,y,words) => `<text x="${x}" y="${y}" text-anchor="middle" font-family="system-ui,sans-serif" font-size="19" font-weight="bold" fill="#422834" stroke="#fff5d6" stroke-width="5" paint-order="stroke">${words}</text>`;
+  const reveal = (at,art) => `<g opacity="0">${art}<set attributeName="opacity" begin="${at}s" to="1" fill="freeze"/></g>`;
+  const desert = '<rect width="600" height="300" fill="#ffdfac"/><circle cx="501" cy="54" r="31" fill="#fff4bc"/><path d="M0 164L112 73L185 142L265 95L386 169L478 122L600 161V226H0Z" fill="#db9c85"/><path d="M0 195Q118 144 265 186T600 167V300H0Z" fill="#eeb971"/><ellipse cx="285" cy="235" rx="235" ry="10" fill="#d79c60"/>';
+  const hero = place(75,72,.88,fighterLeft.querySelector('.karate-svg').outerHTML);
+  const bug = place(-60,-90,1,scorpionSVG);
+  let action;
+  if(streak===5){
+    const nose='<circle r="14" fill="#e83946" stroke="#68223b" stroke-width="3"/><circle cx="-4" cy="-5" r="4" fill="#ffb9af"/>';
+    action=place(390,158,1,bug)+place(145,152,1,move('M0 0 Q110 -134 257 -24',.4,1.25,nose))+reveal(1.8,caption(398,61,'BOOP. Fear me.'));
+  } else if(streak===10){
+    const board='<path d="M-76 0Q-67 13-48 13H50Q68 13 76 -1" fill="none" stroke="#307d79" stroke-width="10"/><g fill="#503549"><circle cx="-46" cy="22" r="9"/><circle cx="48" cy="22" r="9"/></g>';
+    action=place(156,208,1,move('M0 0 H190 Q250 0 331 -2',0,2.5,board))+place(348,146,1,move('M0 0 Q70 -140 140 -2',1.3,1.2,rotate('0;22;-12;0',1.3,1.2,bug)))+reveal(2.55,caption(435,61,'Which foot is the brake?!'));
+  } else if(streak===20){
+    const card='<rect x="-47" y="-31" width="94" height="61" rx="5" fill="#fff7d5" stroke="#78604f" stroke-width="4"/>'+caption(0,-6,'TIME CARD')+reveal(1.75,caption(0,19,'✓ IN'));
+    action=place(155,159,1,move('M0 0 H232',0,1,card))+place(390,125,1,rotate('0;-14;23;0',1,.95,bug))+reveal(2.1,caption(374,52,'Wait. I WORK here now?'));
+  } else if(streak===30){
+    const claw='<path d="M0 -145V-32M-28 9L-38 -7L-18 -32H18L38 -7L28 9" fill="none" stroke="#46626a" stroke-width="8"/>';
+    action='<rect x="245" y="18" width="291" height="217" rx="14" fill="#b9dfdd" stroke="#96516c" stroke-width="10"/>'+place(393,155,1,move('M0 0 V-59',1.6,1,bug))+place(393,43,1,move('M0 0 V65 V6',.45,2.1,claw))+reveal(2.6,caption(379,219,'Put me back. I was winning.'));
+  } else if(streak===40){
+    const cake='<rect x="-72" y="-39" width="144" height="64" rx="12" fill="#ca7383" stroke="#734257" stroke-width="4"/><path d="M-72 -28Q-82 -51 -53 -49H48Q82 -51 72 -28Q63 -16 52 -30Q43 -11 33 -29Q16 -13 2 -29Q-11 -10 -26 -28Q-40 -12 -51 -29Q-66 -16 -72 -28Z" fill="#fff6df"/><ellipse cy="30" rx="92" ry="7" fill="#658f94"/>';
+    action=place(360,146,1,move('M0 0 Q44 -144 76 26',.8,1.4,rotate('0;170',.8,1.4,bug)))+place(155,210,1,move('M0 0 H280',0,1.5,cake))+reveal(2.25,caption(401,62,'My wish was very specific.'));
+  } else {
+    action=place(395,156,1,bug)+'<circle cx="407" cy="132" r="14" fill="#e83946" stroke="#68223b" stroke-width="3"/>';
+  }
+  return '<svg viewBox="0 0 600 300" aria-hidden="true">'+desert+hero+action+'</svg>';
+}
+
   const streakBattles = {
+    [scorpionRound]: { films: scorpionFilms, draw: scorpionFilmArt },
     [krakenRound]: { films: krakenFilms, draw: krakenFilmArt },
     [snakeRound]: { films: snakeFilms, draw: snakeFilmArt },
     [bearRound]: { films: bearFilms, draw: bearFilmArt }
@@ -4386,7 +4448,14 @@
     dialog.addEventListener('cancel', event => event.preventDefault());
     dialog.showModal();
     const wait = ms => new Promise(resolve => setTimeout(resolve, ms * timeScale));
-    if (streak === 50 && gameRound === bearRound) {
+    if (streak === 50 && gameRound === scorpionRound) {
+      line.textContent = victory ? 'Scorpion: “I surrender. Could you at least take this red nose off my tail?”' : 'Scorpion: “Fifty in a row! Quick, take this red nose off my tail.”';
+      await wait(2600);
+      line.textContent = 'Yonah: “Why? Does it hurt?”';
+      await wait(2600);
+      line.textContent = 'Scorpion: “Worse. Every time I threaten somebody, a toddler claps.”';
+      await wait(3200);
+    } else if (streak === 50 && gameRound === bearRound) {
       line.textContent = victory ? 'Bear: “I surrender. But I demand to speak to the chef.”' : 'Bear: “Fifty in a row? I want a recount. And a fork.”';
       await wait(2600);
       line.textContent = victory ? 'Yonah: “Was something wrong with the pie?”' : 'Yonah: “You ate the evidence, Bear.”';
@@ -4431,7 +4500,8 @@
       { name: 'Alien Overlord', artwork: alienSVG, fight: startRound4 },
       { name: 'Kraken', artwork: krakenSVG, fight: startKrakenFight },
       { name: 'Snake', artwork: snakeSVG, fight: startSnakeFight },
-      { name: 'Bear', artwork: bearSVG, fight: startBearFight }
+      { name: 'Bear', artwork: bearSVG, fight: startBearFight },
+      { name: 'Scorpion', artwork: scorpionSVG, fight: startScorpionFight }
     ];
     for (const opponent of opponents) {
       const button = document.createElement('button');
