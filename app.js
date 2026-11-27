@@ -1348,16 +1348,17 @@
       playCorrectSFX();
       triggerPunch(fighterLeft, fighterRight);
 
-      if (gameRound === krakenRound) {
+      if (gameRound === krakenRound || gameRound === snakeRound) {
+        const films = gameRound === snakeRound ? snakeFilms : krakenFilms;
         updateHP();
         await new Promise(resolve => setTimeout(resolve, 700));
         const won = hp >= 100;
-        if (krakenFilms[correctStreak]) {
-          await playKrakenFilm(correctStreak, won);
+        if (films[correctStreak]) {
+          await playStreakFilm(correctStreak, won);
         }
         if (won) {
           playWinSFX();
-          if (correctStreak !== 50) await playKrakenFilm(50, true);
+          if (correctStreak !== 50) await playStreakFilm(50, true);
           window.location.reload();
         } else {
           generateQuestion();
@@ -4129,12 +4130,85 @@
     50: ['A truce at sea', '']
   };
 
+  const snakeRound = 6;
+  const snakeSVG = `<svg class="karate-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 180" width="120" height="180">
+    <ellipse cx="62" cy="153" rx="48" ry="8" fill="#1c3025" opacity=".18"/>
+    <g stroke-linecap="round" fill="none">
+      <path d="M110 121Q117 150 80 140C28 119 11 153 58 152C110 153 98 122 74 113Q55 104 64 80" stroke="#234533" stroke-width="18"/>
+      <path d="M110 121Q117 150 80 140C28 119 11 153 58 152C110 153 98 122 74 113Q55 104 64 80" stroke="#60a455" stroke-width="12"/>
+    </g>
+    <path d="M60 110C46 105 22 80 23 58Q23 32 49 27Q73 6 92 32Q109 56 90 85L69 110Z" fill="#568e4b" stroke="#234533" stroke-width="3"/>
+    <path d="M32 51Q41 31 49 41L44 68Z M82 32Q99 39 94 61L80 51Z" fill="#efbe65"/>
+    <path d="M48 74Q62 63 78 72L67 110L58 107Z" fill="#e7c77c"/>
+    <path d="M44 47Q52 34 70 35Q81 36 85 50L76 70Q65 82 45 67L35 63Q28 55 44 47Z" fill="#88b964" stroke="#234533" stroke-width="3"/>
+    <path d="M43 48L56 50Q48 61 43 48ZM66 48L78 43Q76 56 66 55Z" fill="#ffe18a" stroke="#234533" stroke-width="2"/>
+    <path d="M48 50v4m23-6v5M39 63q13 7 24 0" fill="none" stroke="#263d2c" stroke-width="2"/>
+    <path d="M45 67l-14 9-10-1m10 1-6 7" fill="none" stroke="#ad3854" stroke-width="2.2"/>
+  </svg>`;
+
+  const snakeFilms = {
+    5: ['The bell thief', 'Snake snatches the dojo bell and slips into the bamboo.'],
+    10: ['The river shortcut', 'Yonah hops across the stepping stones and beats Snake to the far bank.'],
+    20: ['A very convincing decoy', 'Snake strikes! The straw dummy loses its hat. Yonah keeps his.'],
+    30: ['Lantern snare', 'Snake follows a swinging lantern and ties itself around the festival pole.'],
+    40: ['Catch the bell!', 'Snake shakes the bell loose from the shrine roof. Yonah dives and catches it.'],
+    50: ['The last hiss', '']
+  };
+
+  function snakeFilmArt(streak) {
+    const actor = (x, y, scale, art) => `<g transform="translate(${x} ${y}) scale(${scale})">${art}</g>`;
+    const move = (path, duration, art, begin = 0) => `<g>${art}<animateMotion path="${path}" begin="${begin}s" dur="${duration}s" fill="freeze"/></g>`;
+    const hero = fighterLeft.querySelector('.karate-svg').outerHTML;
+    const bell = '<path d="M-14 12Q-10 7-10-2Q-9-15 0-15Q11-14 10-2Q11 7 15 12Z" fill="#ffc754" stroke="#61482e" stroke-width="3"/><circle cy="14" r="3" fill="#725334"/><circle cy="-17" r="3" fill="#d38d36"/>';
+    const dusk = streak >= 30;
+    const bg = `<rect width="600" height="300" fill="${dusk ? '#b2aacb' : '#d8e8c4'}"/><circle cx="491" cy="54" r="30" fill="#ffe7b1"/>
+      <path d="M0 173L89 78L141 126L232 58L346 159L440 86L600 161V260H0Z" fill="${dusk ? '#827c99' : '#a2bd9c'}"/>
+      <path d="M0 177Q160 131 303 177T600 151V300H0Z" fill="${dusk ? '#696f73' : '#809b75'}"/>
+      <path d="M0 238Q155 191 320 226T600 215V300H0Z" fill="${dusk ? '#bc9478' : '#d7bf93'}"/>`;
+    const bamboo = '<g stroke="#486644" stroke-width="9"><path d="M10 245L35 5M47 245L54 20M553 232L575 8M585 233L589 0"/></g><path d="M27 74Q43 41 70 43Q53 63 27 74ZM49 99Q23 90 13 63Q38 78 49 99ZM567 76Q533 68 524 41Q552 51 567 76Z" fill="#4b734e"/>';
+    let art;
+    if (streak === 5) {
+      art = bamboo + actor(57,105,.76,hero) + '<path d="M263 207V104H326" stroke="#774c33" fill="none" stroke-width="8"/>'
+        + move('M0 0 Q-40 -10 -68 0 Q0 12 162 0',2.7,actor(318,110,.8,snakeSVG))
+        + move('M0 0 Q73 15 236 0',1.5,actor(317,163,.8,bell),1.2);
+    } else if (streak === 10) {
+      art = '<path d="M0 168Q160 147 292 170T600 158V260Q410 223 301 254T0 244Z" fill="#4a99a6"/><g fill="#666e60" stroke="#bac4a8" stroke-width="4"><ellipse cx="152" cy="210" rx="31" ry="10"/><ellipse cx="264" cy="199" rx="28" ry="9"/><ellipse cx="369" cy="207" rx="30" ry="10"/></g>'
+        + move('M0 0 Q66 -91 114 -5 Q176 -90 225 -16 Q285 -80 336 -7 Q400 -86 465 -13',2.8,actor(5,91,.64,hero))
+        + move('M0 0Q45 -10 119 5',2.9,actor(220,137,.64,snakeSVG));
+    } else if (streak === 20) {
+      art = bamboo + actor(395,89,.77,hero)
+        + '<g stroke="#825732" stroke-width="10"><path d="M273 229V131M238 163L308 156"/></g><path fill="#cfaa59" d="M249 152L291 150L304 193L245 198Z"/><circle cx="271" cy="132" r="19" fill="#ebcb86"/>'
+        + move('M0 0Q40 -75 100 -32',1.2,'<path d="M238 124L269 101L306 120Z" fill="#b98347" stroke="#785733" stroke-width="3"/>',1.1)
+        + move('M0 0 Q67 -28 168 -19 Q112 10 88 12',2.2,actor(57,112,.75,snakeSVG));
+    } else if (streak === 30) {
+      art = '<path d="M0 29Q260 92 600 29" fill="none" stroke="#584353" stroke-width="3"/><g fill="#ed9a5f"><ellipse cx="84" cy="56" rx="11" ry="15"/><ellipse cx="175" cy="69" rx="11" ry="15"/><ellipse cx="435" cy="69" rx="11" ry="15"/></g>'
+        + actor(64,90,.8,hero) + '<path d="M337 226V62" stroke="#754834" stroke-width="13"/>'
+        + move('M0 0Q82 -42 143 0Q161 29 120 19Q95 10 131 0',2.5,actor(165,118,.76,snakeSVG))
+        + '<g transform="translate(338 66)"><g><animateTransform attributeName="transform" type="rotate" values="42;-42;32;-18;0" dur="3s" fill="freeze"/><path d="M0 0v60" stroke="#563d34" stroke-width="3"/><ellipse cy="78" rx="17" ry="22" fill="#ffbb59" stroke="#a8543c" stroke-width="4"/></g></g>';
+    } else if (streak === 40) {
+      art = '<path d="M290 221V129H507V225" fill="#cb8662" stroke="#794e46" stroke-width="6"/><path d="M256 133Q319 118 343 75H441Q467 118 541 130L515 146H273Z" fill="#405969"/>'
+        + move('M0 0Q12 -8 0 0T0 0',.65,actor(335,1,.7,snakeSVG))
+        + move('M0 0Q93 -12 211 24',1.8,actor(50,115,.77,hero))
+        + move('M0 0Q-28 50 -90 132',1.8,actor(398,92,.9,bell));
+    } else {
+      art = bamboo + actor(118,83,.9,hero) + actor(370,78,1,snakeSVG) + actor(250,225,.8,bell);
+    }
+    return '<svg viewBox="0 0 600 300" aria-hidden="true">' + bg + art + '</svg>';
+  }
+
   function startKrakenFight() {
-    gameRound = krakenRound;
-    enemyName = 'Kraken';
-    enemyNameLabel.textContent = enemyName;
-    fighterRight.querySelector('.fighter-body').innerHTML = krakenSVG;
-    const icons = ['⚓', '💥', '🚢', '🍣', '🐋', '💬'];
+    startStreakFight(krakenRound, 'Kraken', krakenSVG, ['⚓', '💥', '🚢', '🍣', '🐋', '💬']);
+  }
+
+  function startSnakeFight() {
+    startStreakFight(snakeRound, 'Snake', snakeSVG, ['🔔', '🌊', '🌾', '🏮', '⛩️', '💬']);
+  }
+
+  function startStreakFight(round, name, artwork, icons) {
+    gameRound = round;
+    enemyName = name;
+    enemyNameLabel.textContent = name;
+    fighterRight.querySelector('.fighter-body').innerHTML = artwork;
     if (!milestones.includes(50)) {
       milestones.push(50);
       const last = document.getElementById('ms-40');
@@ -4188,12 +4262,14 @@
     return '<svg viewBox="0 0 600 300" aria-hidden="true">' + scene + '</svg>';
   }
 
-  async function playKrakenFilm(streak, victory = false) {
-    const [title, caption] = krakenFilms[streak];
+  async function playStreakFilm(streak, victory = false) {
+    const isSnake = gameRound === snakeRound;
+    const [title, caption] = (isSnake ? snakeFilms : krakenFilms)[streak];
+    const art = isSnake ? snakeFilmArt(streak) : krakenFilmArt(streak);
     const dialog = document.createElement('dialog');
     dialog.className = 'kraken-film';
     dialog.setAttribute('aria-label', title);
-    dialog.innerHTML = '<div class="film-art">' + krakenFilmArt(streak) + '</div><h2></h2><p aria-live="polite"></p>';
+    dialog.innerHTML = '<div class="film-art">' + art + '</div><h2></h2><p aria-live="polite"></p>';
     dialog.querySelector('h2').textContent = title;
     const line = dialog.querySelector('p');
     document.body.append(dialog);
@@ -4201,9 +4277,13 @@
     dialog.showModal();
     const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
     if (streak === 50) {
-      line.textContent = victory ? 'Kraken: “One hundred points! I yield, Yonah.”' : 'Kraken: “Fifty answers in a row? I lost count at eight!”';
+      line.textContent = isSnake
+        ? (victory ? 'Snake: “You caught the bell. Fair and sssquare.”' : 'Snake: “Fifty in a row? I thought I had you rattled!”')
+        : victory ? 'Kraken: “One hundred points! I yield, Yonah.”' : 'Kraken: “Fifty answers in a row? I lost count at eight!”';
       await wait(2600);
-      line.textContent = victory ? 'Yonah: “Good fight, Captain Eight-Arms. See you at the dojo!”' : 'Yonah: “Keep those tentacles steady. Our match isn’t over yet!”';
+      line.textContent = isSnake
+        ? (victory ? 'Yonah: “Next time, just ring it. You’re always welcome to train!”' : 'Yonah: “I can count and catch. Your move, Snake!”')
+        : victory ? 'Yonah: “Good fight, Captain Eight-Arms. See you at the dojo!”' : 'Yonah: “Keep those tentacles steady. Our match isn’t over yet!”';
       await wait(3200);
     } else {
       line.textContent = caption;
@@ -4228,7 +4308,8 @@
       { name: 'Ogre', artwork: ogreSVG, fight: startRound2 },
       { name: 'Devil', artwork: devilSVG, fight: startRound3 },
       { name: 'Alien Overlord', artwork: alienSVG, fight: startRound4 },
-      { name: 'Kraken', artwork: krakenSVG, fight: startKrakenFight }
+      { name: 'Kraken', artwork: krakenSVG, fight: startKrakenFight },
+      { name: 'Snake', artwork: snakeSVG, fight: startSnakeFight }
     ];
     for (const opponent of opponents) {
       const button = document.createElement('button');
