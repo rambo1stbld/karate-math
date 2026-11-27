@@ -1348,8 +1348,8 @@
       playCorrectSFX();
       triggerPunch(fighterLeft, fighterRight);
 
-      if (gameRound === krakenRound || gameRound === snakeRound) {
-        const films = gameRound === snakeRound ? snakeFilms : krakenFilms;
+      if (streakBattles[gameRound]) {
+        const films = streakBattles[gameRound].films;
         updateHP();
         await new Promise(resolve => setTimeout(resolve, 700));
         const won = hp >= 100;
@@ -4215,6 +4215,80 @@
     return '<svg viewBox="0 0 600 300" aria-hidden="true">' + art + '</svg>';
   }
 
+  const bearRound = 7;
+  const bearSVG = `<svg class="karate-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 180" width="120" height="180">
+    <ellipse cx="60" cy="160" rx="48" ry="7" fill="#4a3028" opacity=".15"/>
+    <g stroke="#482e27" stroke-width="3" stroke-linejoin="round">
+      <path fill="#975a3a" d="M35 77Q16 79 9 109Q4 122 15 126Q24 129 32 116L27 143Q18 159 27 162H49L57 145H66L72 162H94Q104 159 94 143L88 111Q99 132 109 122Q118 111 105 91Q97 76 82 75Z"/>
+      <ellipse cx="60" cy="109" rx="26" ry="30" fill="#bd8054" stroke="none"/>
+      <circle cx="31" cy="30" r="15" fill="#9a5a3a"/><circle cx="87" cy="30" r="15" fill="#9a5a3a"/>
+      <g fill="#633d33" stroke="none"><circle cx="31" cy="29" r="8"/><circle cx="87" cy="29" r="8"/></g>
+      <path fill="#ad6b45" d="M21 50Q23 23 47 21L52 15L60 20L70 16L73 22Q95 25 98 52L102 67L96 66Q91 89 63 91Q34 92 22 72L16 73Z"/>
+      <g fill="#fff4cf"><ellipse cx="43" cy="51" rx="8" ry="10"/><ellipse cx="73" cy="51" rx="8" ry="10"/></g>
+      <path d="M32 40L48 45M69 44L85 38" fill="none" stroke-linecap="round"/>
+      <g fill="#352a28" stroke="none"><circle cx="44" cy="53" r="3"/><circle cx="72" cy="53" r="3"/></g>
+      <ellipse cx="58" cy="69" rx="22" ry="16" fill="#e5b57d"/><path d="M49 62Q59 57 68 62L60 69H56Z" fill="#352a28"/>
+      <path d="M58 69V74Q53 79 49 73M58 74Q64 79 68 73" fill="none" stroke-width="2"/>
+      <path d="M32 83Q60 96 87 81L77 103L61 98L44 106Z" fill="#c34539"/>
+    </g></svg>`;
+
+  const bearFilms = {
+    5: ['The honey helmet', 'Yonah tips the honey jar. Bear gets every last drop. On his head.'],
+    10: ['Chairlift for one', 'Yonah steps off the seesaw. Bear discovers express seating.'],
+    20: ['Catch of the day', 'Yonah casts once and lands a bear in a very small fishing net.'],
+    30: ['The pie judge', 'Bear demands a sample. Yonah delivers it face first.'],
+    40: ['The rug audition', 'Yonah whips the picnic blanket away. Bear lands in its place.'],
+    50: ['Customer service', '']
+  };
+
+  function startBearFight() {
+    startStreakFight(bearRound, 'Bear', bearSVG, ['🍯', '🪑', '🎣', '🥧', '🧺', '💬']);
+  }
+
+  function bearFilmArt(streak) {
+    const hero = fighterLeft.querySelector('.karate-svg').outerHTML;
+    const place = (x,y,k,art) => `<g transform="translate(${x} ${y}) scale(${k})">${art}</g>`;
+    const move = (path,dur,art,begin=0) => `<g>${art}<animateMotion path="${path}" begin="${begin}s" dur="${dur}s" fill="freeze"/></g>`;
+    const turn = (angles,dur,art,begin=0) => `<g>${art}<animateTransform attributeName="transform" type="rotate" values="${angles}" begin="${begin}s" dur="${dur}s" fill="freeze"/></g>`;
+    const reveal = (at,art) => `<g opacity="0"><set attributeName="opacity" to="1" begin="${at}s" fill="freeze"/>${art}</g>`;
+    const label = (x,y,words) => `<text x="${x}" y="${y}" text-anchor="middle" fill="#492e29" stroke="#fff4d8" stroke-width="5" paint-order="stroke" font-family="system-ui,sans-serif" font-weight="800" font-size="18">${words}</text>`;
+    const woods = '<rect width="600" height="300" fill="#f3d6a0"/><circle cx="507" cy="48" r="29" fill="#fff3c7"/><path fill="#a2b29a" d="M0 154L90 67L174 144L246 85L355 160L452 78L600 163V222H0Z"/><path fill="#76977b" d="M0 182Q119 137 252 171T600 158V232H0Z"/><path fill="#c5b282" d="M0 204Q141 179 303 202T600 192V300H0Z"/>';
+    const bear = place(-60,-90,1,bearSVG);
+    let art;
+    if (streak === 5) {
+      const jar = '<path d="M-25-23H25L20-13Q40 13 24 29H-24Q-40 13-20-13Z" fill="#e8a239" stroke="#744725" stroke-width="4"/><rect x="-21" y="-3" width="42" height="18" rx="4" fill="#fff3c8"/>' + label(0,12,'HONEY');
+      art = place(100,80,.85,hero) + place(355,85,.9,bearSVG)
+        + move('M0 0 Q124 -130 228 -9',1.55,place(180,137,.95,turn('0;180',1.55,jar)),.3)
+        + reveal(1.95,label(408,63,'Who turned out the lights?'));
+    } else if (streak === 10) {
+      const chair = '<path d="M-32 0H31V-65M-25 0V28M25 0V28" stroke="#7e503c" stroke-width="9" fill="none"/>';
+      art = '<path d="M235 231L260 191L286 231Z" fill="#886346"/>' + place(260,192,1,turn('0;0;-18;8',1.3,'<rect x="-128" y="-5" width="258" height="10" rx="4" fill="#795741"/>'))
+        + move('M0 0Q-20 -35 -53 18',.7,place(117,65,.7,hero))
+        + place(479,184,1,chair) + move('M0 0Q72 -170 130 -33',1.5,place(349,137,.76,turn('0;360',1.5,bear)),.7)
+        + reveal(2.3,label(456,49,'I booked economy!'));
+    } else if (streak === 20) {
+      const net = '<path d="M-45-22Q-32 50 0 51Q33 45 44-22Z" fill="#bedfce" fill-opacity=".3" stroke="#495e54" stroke-width="3"/><path d="M-33-19L13 42M-13-22L28 28M10-21L36 13M30-20L-13 41M9-22L-26 28M-13-20L-34 10" fill="none" stroke="#677d66" stroke-width="2"/><ellipse cy="-22" rx="45" ry="9" fill="none" stroke="#495e54" stroke-width="4"/>';
+      art = '<path fill="#75b7c4" d="M0 193Q144 171 300 200T600 186V300H0Z"/>' + place(76,68,.79,hero)
+        + '<path d="M141 133Q217 40 268 76" fill="none" stroke="#695036" stroke-width="5"/>'
+        + move('M0 0Q-29 -75 -102 -93',1.5,place(388,183,.72,bear),1)
+        + move('M0 0Q100 -75 170 31Q144 -45 68 -62',2.6,place(218,164,.93,net))
+        + reveal(2.75,label(345,45,'Throw me back. I’m undersized.'));
+    } else if (streak === 30) {
+      const pie='<ellipse rx="32" ry="14" fill="#a56949" stroke="#593e36" stroke-width="3"/><path d="M-31 0Q-37-12-23-14Q-22-25-9-19Q1-30 11-19Q27-23 29-12Q42-7 31 2Z" fill="#fff6de"/><circle cy="-21" r="5" fill="#d34748"/>';
+      art = place(87,77,.82,hero) + place(361,77,.9,bearSVG)
+        + '<rect x="44" y="210" width="513" height="16" rx="6" fill="#b77559"/>' + move('M0 0Q135 -69 246 -15',1.4,place(168,149,1,turn('0;360',1.4,pie)),.35)
+        + reveal(1.85,label(408,51,'Ten out of ten. Needs a fork.'));
+    } else if (streak === 40) {
+      const cloth='<path d="M-98 0L62-8L104 9L-56 19Z" fill="#d46b59" stroke="#833d39" stroke-width="3"/><path d="M-66 3L-24 15M-26 1L15 13M15-3L56 9" stroke="#fff1c9" stroke-width="6"/>';
+      art = place(74,79,.85,hero) + move('M0 0Q-80 -22-173 -55',.8,place(371,221,1,cloth),.45)
+        + move('M0 0Q39 -82 15 78',1.35,place(379,141,.9,turn('0;45;90',1.35,bear)),.65)
+        + reveal(2.2,label(370,68,'Nobody wipe your feet.'));
+    } else {
+      art = place(111,76,.88,hero) + place(358,69,.98,bearSVG);
+    }
+    return '<svg viewBox="0 0 600 300" aria-hidden="true">' + woods + art + '</svg>';
+  }
+
   function startKrakenFight() {
     startStreakFight(krakenRound, 'Kraken', krakenSVG, ['⚓', '💥', '🚢', '🍣', '🐋', '💬']);
   }
@@ -4281,11 +4355,18 @@
     return '<svg viewBox="0 0 600 300" aria-hidden="true">' + scene + '</svg>';
   }
 
+  const streakBattles = {
+    [krakenRound]: { films: krakenFilms, draw: krakenFilmArt },
+    [snakeRound]: { films: snakeFilms, draw: snakeFilmArt },
+    [bearRound]: { films: bearFilms, draw: bearFilmArt }
+  };
+
   async function playStreakFilm(streak, victory = false) {
     const timeScale = 2;
     const isSnake = gameRound === snakeRound;
-    const [title, caption] = (isSnake ? snakeFilms : krakenFilms)[streak];
-    const art = isSnake ? snakeFilmArt(streak) : krakenFilmArt(streak);
+    const battle = streakBattles[gameRound];
+    const [title, caption] = battle.films[streak];
+    const art = battle.draw(streak);
     const dialog = document.createElement('dialog');
     dialog.className = 'kraken-film';
     dialog.setAttribute('aria-label', title);
@@ -4305,7 +4386,14 @@
     dialog.addEventListener('cancel', event => event.preventDefault());
     dialog.showModal();
     const wait = ms => new Promise(resolve => setTimeout(resolve, ms * timeScale));
-    if (streak === 50) {
+    if (streak === 50 && gameRound === bearRound) {
+      line.textContent = victory ? 'Bear: “I surrender. But I demand to speak to the chef.”' : 'Bear: “Fifty in a row? I want a recount. And a fork.”';
+      await wait(2600);
+      line.textContent = victory ? 'Yonah: “Was something wrong with the pie?”' : 'Yonah: “You ate the evidence, Bear.”';
+      await wait(2600);
+      line.textContent = victory ? 'Bear: “Yes. I ordered it to go. It came AT me.”' : 'Bear: “Then I’ll need a second opinion. Same flavor.”';
+      await wait(3200);
+    } else if (streak === 50) {
       line.textContent = isSnake
         ? (victory ? 'Snake: “I surrender. But the bowling alley owes me a shoe rental.”' : 'Snake: “Fifty in a row? I thought I had you rattled!”')
         : victory ? 'Kraken: “One hundred points! I yield, Yonah.”' : 'Kraken: “Fifty answers in a row? I lost count at eight!”';
@@ -4342,7 +4430,8 @@
       { name: 'Devil', artwork: devilSVG, fight: startRound3 },
       { name: 'Alien Overlord', artwork: alienSVG, fight: startRound4 },
       { name: 'Kraken', artwork: krakenSVG, fight: startKrakenFight },
-      { name: 'Snake', artwork: snakeSVG, fight: startSnakeFight }
+      { name: 'Snake', artwork: snakeSVG, fight: startSnakeFight },
+      { name: 'Bear', artwork: bearSVG, fight: startBearFight }
     ];
     for (const opponent of opponents) {
       const button = document.createElement('button');
