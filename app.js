@@ -13,7 +13,6 @@
   const nameBtn = document.getElementById('name-btn');
   const enemyNameInput = document.getElementById('enemy-name-input');
   const retryBtn = document.getElementById('retry-btn');
-  const playAgainBtn = document.getElementById('play-again-btn');
 
   const questionEl = document.getElementById('question');
   const answerInput = document.getElementById('answer-input');
@@ -1505,19 +1504,14 @@
   }
 
   function triggerVillainCutscene() {
-    // Update button label based on current round
-    if (gameRound === 1) {
-      playAgainBtn.textContent = 'Play Round 2';
-    } else if (gameRound === 2) {
-      playAgainBtn.textContent = 'Play Round 3';
-    } else if (gameRound === 3) {
-      playAgainBtn.textContent = 'Play Round 4';
-    } else {
-      playAgainBtn.textContent = 'Play Again';
-    }
-
     // Update enemy name in cutscene
     cutsceneEnemyName.textContent = enemyName || 'Enemy';
+    if (gameRound > 1) {
+      const defeated = fighterRight.querySelector('.karate-svg').cloneNode(true);
+      defeated.setAttribute('width', '100');
+      defeated.setAttribute('height', '133');
+      cutsceneEnemy.querySelector('svg').replaceWith(defeated);
+    }
 
     // Show the right villain (Ogre after Round 1, Devil after Round 2)
     if (gameRound === 1) {
@@ -1535,6 +1529,10 @@
       cutsceneDevilBody.style.display = 'none';
       cutsceneAlienBody.style.display = '';
       cutsceneVillainName.textContent = 'Alien Overlord';
+      if (gameRound === 4) {
+        cutsceneAlienBody.replaceChildren(fighterLeft.querySelector('.karate-svg').cloneNode(true));
+        cutsceneVillainName.textContent = 'Yonah';
+      }
     }
 
     // Reset state
@@ -1577,12 +1575,17 @@
         line2 = 'Only YOU can stop him now. Go, my lord. Destroy him!';
         responder = 'Devil'; responderColor = '#8b0000';
         response = 'Heh heh heh... Fresh souls to collect. I shall enjoy this.';
-      } else {
+      } else if (gameRound === 3) {
         // After Round 3 (Devil defeated), Alien Overlord is summoned
         line1 = 'Even I, the Devil, could not defeat this child...';
         line2 = 'We need someone from beyond this world. Alien Overlord, you are our last hope!';
         responder = 'Alien Overlord'; responderColor = '#4a8a6a';
         response = 'Interesting... A human child who defeats gods and demons? I must study this specimen.';
+      } else {
+        line1 = 'My scanners confirm it. One hundred points!';
+        line2 = 'Yonah, the galaxy concedes this match.';
+        responder = 'Yonah'; responderColor = '#f0c35b';
+        response = 'Good match! Time to choose my next opponent.';
       }
 
       await typeText(dialogueText, line1, 35);
@@ -1595,11 +1598,9 @@
       dialogueText.classList.remove('done');
       await typeText(dialogueText, response, 45);
 
-      // Pause then show win content
+      // Leave the last line on screen before resetting the arena and its timers.
       await new Promise(r => setTimeout(r, 2500));
-      villainCutscene.style.display = 'none';
-      dialogueSpeaker.style.color = '';
-      winContent.style.display = '';
+      window.location.reload();
     }, 2000);
   }
 
@@ -4125,17 +4126,6 @@
     if (e.key === 'Enter') confirmEnemyName();
   });
   retryBtn.addEventListener('click', startGame);
-  playAgainBtn.addEventListener('click', () => {
-    if (gameRound === 1) {
-      startRound2();
-    } else if (gameRound === 2) {
-      startRound3();
-    } else if (gameRound === 3) {
-      startRound4();
-    } else {
-      startGame();
-    }
-  });
 
   submitBtn.addEventListener('click', submitAnswer);
   answerInput.addEventListener('keydown', (e) => {
