@@ -343,9 +343,11 @@
   }
 
   // === Question generation ===
+  const practiceFactors = [2, 3, 4, 5, 6, 7, 8, 9, 11, 12];
+
   function generateQuestion() {
-    currentA = Math.floor(Math.random() * 12) + 1;
-    currentB = Math.floor(Math.random() * 12) + 1;
+    currentA = practiceFactors[Math.floor(Math.random() * practiceFactors.length)];
+    currentB = practiceFactors[Math.floor(Math.random() * practiceFactors.length)];
     currentAnswer = currentA * currentB;
     questionEl.textContent = `${currentA} × ${currentB} = ?`;
     answerInput.value = '';
