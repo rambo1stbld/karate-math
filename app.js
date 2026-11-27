@@ -4084,6 +4084,41 @@
   }
 
   // === Event listeners ===
+  function startSenseiFight() {
+    gameRound = 1;
+    enemyName = 'Sensei Bot';
+    enemyNameLabel.textContent = enemyName;
+    fighterRight.querySelector('.fighter-body').innerHTML = originalEnemySVG;
+    startGame();
+  }
+
+  const opponentList = document.getElementById('opponent-list');
+  if (opponentList) {
+    const opponents = [
+      { name: 'Sensei Bot', artwork: originalEnemySVG, fight: startSenseiFight },
+      { name: 'Ogre', artwork: ogreSVG, fight: startRound2 },
+      { name: 'Devil', artwork: devilSVG, fight: startRound3 },
+      { name: 'Alien Overlord', artwork: alienSVG, fight: startRound4 }
+    ];
+    for (const opponent of opponents) {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'opponent-choice';
+      const portrait = document.createElement('span');
+      portrait.className = 'opponent-portrait';
+      portrait.setAttribute('aria-hidden', 'true');
+      portrait.innerHTML = opponent.artwork;
+      const svg = portrait.querySelector('svg');
+      svg.setAttribute('viewBox', '0 0 120 103');
+      svg.querySelectorAll('[id]').forEach(element => element.removeAttribute('id'));
+      const label = document.createElement('span');
+      label.textContent = opponent.name;
+      button.append(portrait, label);
+      button.addEventListener('click', opponent.fight);
+      opponentList.append(button);
+    }
+  }
+
   startBtn.addEventListener('click', showNameScreen);
   nameBtn.addEventListener('click', confirmEnemyName);
   enemyNameInput.addEventListener('keydown', (e) => {
