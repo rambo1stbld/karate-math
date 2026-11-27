@@ -4282,6 +4282,7 @@
   }
 
   async function playStreakFilm(streak, victory = false) {
+    const timeScale = 2;
     const isSnake = gameRound === snakeRound;
     const [title, caption] = (isSnake ? snakeFilms : krakenFilms)[streak];
     const art = isSnake ? snakeFilmArt(streak) : krakenFilmArt(streak);
@@ -4289,12 +4290,21 @@
     dialog.className = 'kraken-film';
     dialog.setAttribute('aria-label', title);
     dialog.innerHTML = '<div class="film-art">' + art + '</div><h2></h2><p aria-live="polite"></p>';
+    // Both films use SVG timeline offsets and durations expressed in seconds.
+    for (const cue of dialog.querySelectorAll('animateTransform, animateMotion, animate, set')) {
+      for (const attribute of ['begin', 'dur']) {
+        if (cue.hasAttribute(attribute)) {
+          const seconds = parseFloat(cue.getAttribute(attribute));
+          cue.setAttribute(attribute, (seconds * timeScale) + 's');
+        }
+      }
+    }
     dialog.querySelector('h2').textContent = title;
     const line = dialog.querySelector('p');
     document.body.append(dialog);
     dialog.addEventListener('cancel', event => event.preventDefault());
     dialog.showModal();
-    const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
+    const wait = ms => new Promise(resolve => setTimeout(resolve, ms * timeScale));
     if (streak === 50) {
       line.textContent = isSnake
         ? (victory ? 'Snake: “I surrender. But the bowling alley owes me a shoe rental.”' : 'Snake: “Fifty in a row? I thought I had you rattled!”')
